@@ -1,31 +1,12 @@
-# Django Core
-Django==5.0.6
-django-crispy-forms==2.1
-crispy-bootstrap5==0.7
-python-decouple==3.8
-
-# Database
-psycopg2-binary==2.9.9  # For PostgreSQL (optional)
-
-# AI & Machine Learning
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.4.2
-nltk==3.8.1
-joblib==1.4.2
-sentence-transformers==2.2.2
-
-# Image & Media
-Pillow==10.3.0
-
-# HTTP Requests
-requests==2.31.0
-
-# Utilities
-python-dotenv==1.0.0
-Faker==25.8.0
-
-# Task Queue (Optional)
-# celery==5.3.4
-# redis==5.0.1
-# django-celery-beat==2.6.0
+Django==5.0.6 
+pandas==2.2.2 
+numpy==1.26.4 
+scikit-learn==1.4.2 
+nltk==3.8.1 
+joblib==1.4.2 
+Pillow==10.3.0 
+python-decouple==3.8 
+django-crispy-forms==2.1 
+crispy-bootstrap5==0.7 
+requests==2.31.0 
+Faker==25.8.0 
