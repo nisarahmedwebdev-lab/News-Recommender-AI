@@ -105,7 +105,22 @@ venv\Scripts\activate
 python3 -m venv venv
 source venv/bin/activate
 
+# Install all dependencies
 pip install -r requirements.txt
+
+# If requirements.txt not found, install manually
+pip install Django==5.0.6
+pip install pandas==2.2.2
+pip install numpy==1.26.4
+pip install scikit-learn==1.4.2
+pip install nltk==3.8.1
+pip install joblib==1.4.2
+pip install Pillow==10.3.0
+pip install python-decouple==3.8
+pip install django-crispy-forms==2.1
+pip install crispy-bootstrap5==0.7
+pip install requests==2.31.0
+pip install Faker==25.8.0
 
 
 # Make migrations
