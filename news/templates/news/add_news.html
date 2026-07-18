@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} News - News AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header {% if is_editing %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if is_editing %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                        {% if is_editing %}Edit{% else %}Add New{% endif %} News
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="id_title" class="form-label">Title <span
+                                            class="text-danger">*</span></label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                    <div class="text-danger small">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="id_category" class="form-label">Category <span
+                                            class="text-danger">*</span></label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_author" class="form-label">Author <span
+                                            class="text-danger">*</span></label>
+                                    {{ form.author }}
+                                    {% if form.author.errors %}
+                                    <div class="text-danger small">{{ form.author.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_published_date" class="form-label">Published Date</label>
+                                    {{ form.published_date }}
+                                    {% if form.published_date.errors %}
+                                    <div class="text-danger small">{{ form.published_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Description <span
+                                    class="text-danger">*</span></label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Short summary of the news (will appear in cards)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_content" class="form-label">Content <span
+                                    class="text-danger">*</span></label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                            <div class="text-danger small">{{ form.content.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Full news article content</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_source" class="form-label">Source</label>
+                                    {{ form.source }}
+                                    {% if form.source.errors %}
+                                    <div class="text-danger small">{{ form.source.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_source_url" class="form-label">Source URL</label>
+                                    {{ form.source_url }}
+                                    {% if form.source_url.errors %}
+                                    <div class="text-danger small">{{ form.source_url.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_image" class="form-label">Image</label>
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                            <div class="text-danger small">{{ form.image.errors }}</div>
+                            {% endif %}
+                            {% if news and news.image %}
+                            <div class="mt-2">
+                                <img src="{{ news.image.url }}" alt="Current image"
+                                    style="max-height: 150px; border-radius: 4px;">
+                                <small class="d-block text-muted">Current image</small>
+                            </div>
+                            {% endif %}
+                            <small class="text-muted">Upload a representative image for the news</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="{% url 'news:list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit"
+                                class="btn btn-{% if is_editing %}warning{% else %}success{% endif %}">
+                                <i class="fas fa-{% if is_editing %}save{% else %}plus{% endif %} me-2"></i>
+                                {% if is_editing %}Update{% else %}Add{% endif %} News
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if is_editing %}
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <p>Once you delete this news, it cannot be recovered.</p>
+                    <a href="{% url 'news:delete' slug=news.slug %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete News
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

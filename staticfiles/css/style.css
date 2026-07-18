@@ -1,0 +1,369 @@
+/* Custom styles for News Recommender System */
+
+/* ========== SIDEBAR STYLES ========== */
+:root {
+    --sidebar-width: 280px;
+    --navbar-height: 65px;
+}
+
+body {
+    min-height: 100vh;
+    background: #f4f6f9;
+    padding-top: var(--navbar-height);
+    overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+    height: var(--navbar-height);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+#sidebarToggle {
+    padding: 5px 10px;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: var(--navbar-height);
+    left: -280px;
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--navbar-height));
+    background: #2c3e50;
+    color: #fff;
+    transition: left 0.3s ease;
+    z-index: 1040;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: #1a252f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #34495e;
+}
+
+.sidebar-header h5 {
+    margin: 0;
+    color: #fff;
+    font-weight: 600;
+}
+
+.sidebar-user {
+    padding: 20px;
+    border-bottom: 1px solid #34495e;
+}
+
+.sidebar-user .text-muted {
+    color: #95a5a6 !important;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    gap: 12px;
+}
+
+.sidebar-link:hover {
+    color: #fff;
+    background: #34495e;
+    text-decoration: none;
+}
+
+.sidebar-link i {
+    width: 20px;
+    font-size: 1.1rem;
+}
+
+.sidebar-link span {
+    flex: 1;
+}
+
+.sidebar-link .badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+}
+
+.sidebar-divider {
+    padding: 8px 20px;
+    color: #7f8c8d;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    width: 100%;
+    height: calc(100vh - var(--navbar-height));
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1030;
+    display: none;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 0;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is active on desktop */
+@media (min-width: 992px) {
+    .sidebar.active {
+        left: 0;
+    }
+
+    .main-content.sidebar-active {
+        margin-left: var(--sidebar-width);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 991px) {
+    .sidebar {
+        width: 300px;
+        left: -300px;
+    }
+
+    .main-content.sidebar-active {
+        margin-left: 0;
+    }
+
+    .navbar .mx-auto {
+        max-width: 300px !important;
+    }
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #34495e;
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #4a6a7f;
+}
+
+/* ========== NEWS CARDS ========== */
+.news-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.news-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Category Cards */
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Category Badges */
+.category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.action-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-picture {
+        width: 100px;
+        height: 100px;
+    }
+
+    .news-card .card-img-top {
+        height: 150px;
+    }
+
+    .navbar .mx-auto {
+        max-width: 200px !important;
+    }
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+}
+
+/* Add these styles for full width cards */
+
+/* Full width news cards */
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card .card-body {
+    padding: 1.5rem;
+}
+
+/* Category filters */
+.btn-outline-primary.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-outline-primary.active:hover {
+    background-color: #0b5ed7;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card .row.g-0 {
+        flex-direction: column;
+    }
+
+    .card .col-md-4 {
+        max-height: 200px;
+    }
+
+    .card .col-md-4 img {
+        min-height: 150px;
+        max-height: 200px;
+    }
+
+    .card .card-body {
+        padding: 1rem;
+    }
+
+    .card .d-flex.justify-content-between.align-items-center {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .card .d-flex.gap-3 {
+        flex-wrap: wrap;
+    }
+}
+
+/* Pagination */
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.pagination .page-link {
+    color: #0d6efd;
+}
+
+.pagination .page-link:hover {
+    background-color: #e9ecef;
+}
+
+/* Animation delay for cards */
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

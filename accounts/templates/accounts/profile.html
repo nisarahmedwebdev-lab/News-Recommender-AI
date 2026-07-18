@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - News AI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-md">
+                <div class="card-body text-center py-5">
+                    <!-- Profile Picture -->
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle mb-3"
+                        style="width: 140px; height: 140px; object-fit: cover; border: 4px solid #667eea;">
+                    {% else %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                        style="width: 140px; height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 3rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- User Info -->
+                    <h4 class="mb-1 fw-bold">{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted mb-3">@{{ user.username }}</p>
+
+                    <!-- Interests Badge -->
+                    {% if user.interests %}
+                    <div class="mb-3">
+                        <span class="badge bg-primary px-3 py-2">
+                            <i class="fas fa-star me-1"></i>{{ user.get_interests_display }}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- Stats -->
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <p class="text-muted small mb-1">Joined</p>
+                            <p class="fw-bold">{{ user.date_joined|date:"M Y" }}</p>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <p class="text-muted small mb-1">Articles</p>
+                            <p class="fw-bold">{{ user_stats.total_likes }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Quick Actions -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'news:saved' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-bookmark me-2"></i>Saved Articles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Profile Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-md">
+                <div class="card-header bg-gradient">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Name Row -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_first_name" class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>First Name
+                                </label>
+                                <input type="text" name="first_name" id="id_first_name" class="form-control"
+                                    value="{{ form.first_name.value|default:'' }}" placeholder="First name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_last_name" class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>Last Name
+                                </label>
+                                <input type="text" name="last_name" id="id_last_name" class="form-control"
+                                    value="{{ form.last_name.value|default:'' }}" placeholder="Last name">
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label fw-bold">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <input type="email" name="email" id="id_email" class="form-control"
+                                value="{{ form.email.value|default:'' }}" required>
+                            <small class="form-text">We'll never share your email with anyone.</small>
+                        </div>
+
+                        <!-- Interests - FIXED: Removed all selected attributes -->
+                        <div class="mb-3">
+                            <label for="id_interests" class="form-label fw-bold">
+                                <i class="fas fa-star me-2"></i>Your Interests
+                            </label>
+                            <select name="interests" id="id_interests" class="form-select">
+                                <option value="">Select your primary interest</option>
+                                <option value="AI">Artificial Intelligence</option>
+                                <option value="TECH">Technology</option>
+                                <option value="SPORTS">Sports</option>
+                                <option value="BUSINESS">Business</option>
+                                <option value="HEALTH">Health</option>
+                                <option value="EDUCATION">Education</option>
+                                <option value="ENTERTAINMENT">Entertainment</option>
+                                <option value="POLITICS">Politics</option>
+                                <option value="SCIENCE">Science</option>
+                                <option value="ENVIRONMENT">Environment</option>
+                                <option value="TRAVEL">Travel</option>
+                            </select>
+                            <small class="form-text">This helps us personalize your news feed</small>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label for="id_bio" class="form-label fw-bold">
+                                <i class="fas fa-pen me-2"></i>Bio
+                            </label>
+                            <textarea name="bio" id="id_bio" rows="4" class="form-control"
+                                placeholder="Tell us about yourself...">{{ form.bio.value|default:'' }}</textarea>
+                            <small class="form-text">Maximum 500 characters</small>
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="mb-4">
+                            <label for="id_profile_picture" class="form-label fw-bold">
+                                <i class="fas fa-image me-2"></i>Profile Picture
+                            </label>
+                            <input type="file" name="profile_picture" id="id_profile_picture" class="form-control"
+                                accept="image/*">
+                            {% if user.profile_picture %}
+                            <small class="form-text">Current: {{ user.profile_picture.name }}</small>
+                            {% endif %}
+                            <small class="form-text">Accepted formats: JPG, PNG, GIF (Max 5MB)</small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-check me-2"></i>Save Changes
+                                </button>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Change Password Link -->
+                        <hr>
+                        <p class="text-center text-muted">
+                            <a href="{% url 'accounts:change_password' %}" class="text-decoration-none">
+                                <i class="fas fa-lock me-1"></i>Change password?
+                            </a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient {
+        background: linear-gradient(135deg, #f3f4f6 0%, #f0f0f0 100%);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Debug - Recommendations{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h2 class="mb-4"><i class="fas fa-bug me-2"></i>Recommendation Debug Info</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 Database Stats</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total News:</strong> {{ total_news }}</p>
+                    <p><strong>Model Exists:</strong> {{ model_exists }}</p>
+                    <p><strong>Your Likes:</strong> {{ likes }}</p>
+                    <p><strong>Your Saves:</strong> {{ saves }}</p>
+                    <p><strong>Your Views:</strong> {{ views }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🎯 Category Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for pref in category_prefs %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            {{ pref.category__name }}
+                            <span class="badge bg-primary">{{ pref.count }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No preferences yet</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🤖 Recommended News</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Recommended:</strong> {{ recommended_ids|length }}</p>
+                    <ul class="list-group">
+                        {% for news in recommended_news %}
+                        <li class="list-group-item">
+                            {{ news.title|truncatechars:50 }}
+                            <br>
+                            <small class="text-muted">ID: {{ news.id }} | Category: {{ news.category.name }}</small>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No recommendations</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

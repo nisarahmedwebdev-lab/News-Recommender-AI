@@ -1,0 +1,1008 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - News AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div class="welcome-content">
+            <h2>👋 Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
+            <p>Stay updated with personalized news tailored to your interests</p>
+            <a href="{% url 'recommendation:feed' %}" class="btn btn-primary">
+                <i class="fas fa-robot"></i> Explore AI Feed
+            </a>
+        </div>
+        <div class="welcome-icon">
+            <i class="fas fa-newspaper"></i>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-info">
+                <h6>Total News</h6>
+                <h3>{{ news.paginator.count }}</h3>
+            </div>
+            <i class="fas fa-newspaper stat-icon"></i>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-info">
+                <h6>Your Likes</h6>
+                <h3>{{ user_stats.total_likes }}</h3>
+            </div>
+            <i class="fas fa-heart stat-icon"></i>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-info">
+                <h6>Saved</h6>
+                <h3>{{ user_stats.total_bookmarks }}</h3>
+            </div>
+            <i class="fas fa-bookmark stat-icon"></i>
+        </div>
+        <div class="stat-card info">
+            <div class="stat-info">
+                <h6>Viewed</h6>
+                <h3>{{ user_stats.total_views }}</h3>
+            </div>
+            <i class="fas fa-eye stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-header">
+        <div>
+            <h3><i class="fas fa-rss"></i> News Feed</h3>
+            <p>Latest stories from your categories</p>
+        </div>
+        <div class="section-actions">
+            {% if user.is_superuser or user.is_staff %}
+            <a href="{% url 'news:add' %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus-circle"></i> Add News
+            </a>
+            {% endif %}
+            <a href="{% url 'recommendation:feed' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-robot"></i> AI Feed
+            </a>
+        </div>
+    </div>
+
+    <!-- Categories - WORKING -->
+    <div class="category-filters-wrapper">
+        <div class="category-filters">
+            <a href="{% url 'dashboard:home' %}" class="filter-btn {% if not request.GET.category %}active{% endif %}">
+                <i class="fas fa-list"></i> All
+            </a>
+            {% for category in categories %}
+            <a href="?category={{ category.id }}"
+                class="filter-btn {% if request.GET.category == category.id|stringformat:'s' %}active{% endif %}">
+                <i class="fas fa-tag"></i> {{ category.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- News Grid -->
+    <div class="news-grid">
+        {% if news %}
+        {% for item in news %}
+        <div class="news-card">
+            <!-- ===== IMAGE SECTION - FIXED ===== -->
+            <div class="news-image">
+                {% if item.image_url and item.image_url|slice:":4" == "http" %}
+                <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy"
+                    onerror="this.style.display='none'; this.parentElement.querySelector('.no-image-placeholder').style.display='flex'">
+                <div class="no-image-placeholder" style="display:none;">
+                    <i class="fas fa-image"></i>
+                </div>
+                {% else %}
+                <div class="no-image-placeholder">
+                    <i class="fas fa-image"></i>
+                </div>
+                {% endif %}
+                <span class="news-badge category-badge">{{ item.category.name }}</span>
+                {% if item.views > 100 %}
+                <span class="news-badge hot-badge"><i class="fas fa-fire"></i> Hot</span>
+                {% endif %}
+            </div>
+            <div class="news-body">
+                <h5><a href="{{ item.get_absolute_url }}">{{ item.title|truncatechars:60 }}</a></h5>
+                <p>{{ item.description|truncatechars:80 }}</p>
+                <div class="news-meta">
+                    <div class="news-stats">
+                        <span><i class="fas fa-eye"></i> {{ item.views }}</span>
+                        <span><i class="fas fa-heart"></i> {{ item.likes_count }}</span>
+                        <span><i class="far fa-clock"></i> {{ item.created_at|timesince }} ago</span>
+                    </div>
+                    <div class="news-actions">
+                        <button class="action-btn like-btn" data-url="{% url 'news:like' item.id %}"
+                            data-news-id="{{ item.id }}" data-csrf="{{ csrf_token }}">
+                            <i class="fas fa-heart like-icon {% if item.id in liked_news %}active{% endif %}"></i>
+                        </button>
+                        <button class="action-btn save-btn" data-url="{% url 'news:save' item.id %}"
+                            data-news-id="{{ item.id }}" data-csrf="{{ csrf_token }}">
+                            <i class="fas fa-bookmark save-icon {% if item.id in saved_news %}active{% endif %}"></i>
+                        </button>
+                        <a href="{{ item.get_absolute_url }}" class="action-btn read-btn">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h5>No Articles Available</h5>
+            <p>No articles found. Check back soon for updates!</p>
+            <a href="{% url 'dashboard:home' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-redo"></i> Refresh
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if news.has_other_pages %}
+    <div class="pagination">
+        {% if news.has_previous %}
+        <a href="?page={{ news.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+            class="page-link">&laquo;</a>
+        {% endif %}
+        {% for num in news.paginator.page_range %}
+        {% if num == news.number %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > news.number|add:'-3' and num < news.number|add:'3' %} <a
+            href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+            class="page-link">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+            {% if news.has_next %}
+            <a href="?page={{ news.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
+                class="page-link">&raquo;</a>
+            {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* ======================================================
+       ===== DASHBOARD CONTAINER =====
+       ====================================================== */
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 0.5rem;
+        overflow: hidden;
+    }
+
+    /* ======================================================
+       ===== WELCOME BANNER =====
+       ====================================================== */
+    .welcome-banner {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .welcome-content h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .welcome-content p {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-content .btn {
+        background: white;
+        color: #667eea;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.4rem 1.2rem;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .welcome-content .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .welcome-icon {
+        font-size: 3.5rem;
+        opacity: 0.15;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+    }
+
+    /* ======================================================
+       ===== STATS GRID =====
+       ====================================================== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+        min-height: 70px;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-card.primary {
+        border-color: #667eea;
+    }
+
+    .stat-card.success {
+        border-color: #10b981;
+    }
+
+    .stat-card.warning {
+        border-color: #f59e0b;
+    }
+
+    .stat-card.info {
+        border-color: #0ea5e9;
+    }
+
+    .stat-info h6 {
+        font-size: 0.65rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.1rem;
+        font-weight: 600;
+    }
+
+    .stat-info h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stat-icon {
+        font-size: 1.8rem;
+        opacity: 0.12;
+        flex-shrink: 0;
+    }
+
+    /* ======================================================
+       ===== SECTION HEADER =====
+       ====================================================== */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .section-header h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .section-header h3 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+
+    .section-header p {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .section-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .section-actions .btn {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+    }
+
+    /* ======================================================
+       ===== CATEGORY FILTERS - WORKING =====
+       ====================================================== */
+    .category-filters-wrapper {
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .category-filters {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+    }
+
+    .category-filters::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .category-filters::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .category-filters::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+    .filter-btn {
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #4b5563;
+        background: white;
+        border: 2px solid #e5e7eb;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-shrink: 0;
+    }
+
+    .filter-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .filter-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    /* ======================================================
+       ===== NEWS GRID =====
+       ====================================================== */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .news-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .news-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ======================================================
+       ===== NEWS IMAGE - FIXED =====
+       ====================================================== */
+    .news-image {
+        position: relative;
+        height: 140px;
+        overflow: hidden;
+        background: #f3f4f6;
+        flex-shrink: 0;
+        width: 100%;
+    }
+
+    .news-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    .news-card:hover .news-image img {
+        transform: scale(1.05);
+    }
+
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f3f4f6;
+        color: #9ca3af;
+        font-size: 2rem;
+    }
+
+    .news-badge {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        color: white;
+        font-size: 0.5rem;
+        font-weight: 600;
+        padding: 0.1rem 0.5rem;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+        z-index: 2;
+        max-width: calc(100% - 1rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .category-badge {
+        background: rgba(0, 0, 0, 0.65);
+    }
+
+    .hot-badge {
+        left: auto;
+        right: 0.5rem;
+        background: #ef4444;
+    }
+
+    /* ======================================================
+       ===== NEWS BODY =====
+       ====================================================== */
+    .news-body {
+        padding: 0.75rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .news-body h5 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 0 0 0.3rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.3;
+        word-wrap: break-word;
+    }
+
+    .news-body h5 a {
+        color: #1a1a2e;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .news-body h5 a:hover {
+        color: #667eea;
+    }
+
+    .news-body p {
+        font-size: 0.7rem;
+        color: #6b7280;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        margin: 0 0 0.5rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    /* ======================================================
+       ===== NEWS META =====
+       ====================================================== */
+    .news-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .news-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.6rem;
+        color: #6b7280;
+    }
+
+    .news-stats span {
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+    }
+
+    .news-actions {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        color: #6b7280;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .action-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .like-icon.active {
+        color: #ef4444;
+    }
+
+    .save-icon.active {
+        color: #f59e0b;
+    }
+
+    .read-btn {
+        background: #667eea !important;
+        color: white !important;
+        border-color: #667eea !important;
+    }
+
+    .read-btn:hover {
+        background: #5a67d8 !important;
+    }
+
+    /* ======================================================
+       ===== EMPTY STATE =====
+       ====================================================== */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h5 {
+        font-size: 1.1rem;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    /* ======================================================
+       ===== PAGINATION =====
+       ====================================================== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.3rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .page-link {
+        padding: 0.3rem 0.7rem;
+        border-radius: 6px;
+        color: #667eea;
+        background: white;
+        border: 1px solid #e5e7eb;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .page-link.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    /* ======================================================
+       ===== RESPONSIVE =====
+       ====================================================== */
+
+    /* Large screens */
+    @media (max-width: 1200px) {
+        .news-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .news-image {
+            height: 130px;
+        }
+    }
+
+    /* Tablets */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .news-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .welcome-icon {
+            display: none;
+        }
+
+        .news-image {
+            height: 160px;
+        }
+    }
+
+    /* Small tablets & large phones */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0 0.25rem;
+        }
+
+        .welcome-banner {
+            padding: 1.25rem;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .welcome-content h2 {
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .stat-card {
+            padding: 0.75rem 1rem;
+            min-height: 60px;
+        }
+
+        .stat-info h3 {
+            font-size: 1.1rem;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .news-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .news-image {
+            height: 130px;
+        }
+
+        .category-filters {
+            gap: 0.4rem;
+            padding-bottom: 0.3rem;
+        }
+
+        .filter-btn {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+        }
+    }
+
+    /* Mobile phones */
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .stat-card {
+            padding: 0.6rem 0.8rem;
+            min-height: 50px;
+        }
+
+        .stat-info h6 {
+            font-size: 0.55rem;
+        }
+
+        .stat-info h3 {
+            font-size: 0.95rem;
+        }
+
+        .stat-icon {
+            font-size: 1.4rem;
+        }
+
+        .news-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .news-image {
+            height: 180px;
+        }
+
+        .news-body h5 {
+            font-size: 0.85rem;
+        }
+
+        .news-body p {
+            font-size: 0.75rem;
+        }
+
+        .welcome-content h2 {
+            font-size: 1rem;
+        }
+
+        .welcome-content p {
+            font-size: 0.75rem;
+        }
+
+        .section-actions .btn {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+        }
+
+        .pagination {
+            gap: 0.2rem;
+        }
+
+        .page-link {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+        }
+    }
+
+    /* Very small phones */
+    @media (max-width: 360px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.3rem;
+        }
+
+        .stat-card {
+            padding: 0.4rem 0.6rem;
+            min-height: 44px;
+        }
+
+        .stat-info h6 {
+            font-size: 0.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 0.85rem;
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+        }
+
+        .news-image {
+            height: 150px;
+        }
+    }
+</style>
+
+<script>
+    // ===== PROFILE DROPDOWN =====
+    document.getElementById('profileToggle')?.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('profileMenu').classList.toggle('show');
+    });
+
+    document.addEventListener('click', function (e) {
+        const dropdown = document.querySelector('.profile-dropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            document.getElementById('profileMenu')?.classList.remove('show');
+        }
+    });
+
+    // ===== LIKE BUTTON =====
+    document.querySelectorAll('.like-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const url = this.dataset.url;
+            const icon = this.querySelector('.like-icon');
+            const csrfToken = this.dataset.csrf || getCSRFToken();
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        icon.classList.toggle('active');
+                        showToast(data.liked ? 'Liked! ❤️' : 'Unliked', data.liked ? 'success' : 'info');
+                    }
+                })
+                .catch(() => showToast('Error!', 'error'));
+        });
+    });
+
+    // ===== SAVE BUTTON =====
+    document.querySelectorAll('.save-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const url = this.dataset.url;
+            const icon = this.querySelector('.save-icon');
+            const csrfToken = this.dataset.csrf || getCSRFToken();
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        icon.classList.toggle('active');
+                        showToast(data.saved ? 'Saved! 📌' : 'Unsaved', data.saved ? 'success' : 'info');
+                    }
+                })
+                .catch(() => showToast('Error!', 'error'));
+        });
+    });
+
+    // ===== UTILITY FUNCTIONS =====
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showToast(message, type = 'success') {
+        if (typeof Swal !== 'undefined') {
+            const iconMap = { 'success': 'success', 'error': 'error', 'warning': 'warning', 'info': 'info' };
+            Swal.fire({
+                icon: iconMap[type] || 'info',
+                title: type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : type === 'warning' ? 'Warning!' : 'Info',
+                text: message,
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    }
+</script>
+{% endblock %}

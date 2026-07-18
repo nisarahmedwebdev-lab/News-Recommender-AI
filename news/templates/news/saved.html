@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Saved News - News AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-bookmark text-warning me-2"></i>Saved Articles</h2>
+    
+    <div class="row">
+        {% if saved_news %}
+            {% for bookmark in saved_news %}
+                <div class="col-md-4 mb-4">
+                    <div class="card news-card shadow h-100">
+                        <div class="card-body">
+                            <span class="badge bg-warning mb-2"><i class="fas fa-bookmark me-1"></i>Saved</span>
+                            <h5 class="card-title">{{ bookmark.news.title|truncatechars:60 }}</h5>
+                            <p class="card-text text-muted">{{ bookmark.news.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    <i class="fas fa-clock me-1"></i>{{ bookmark.created_at|timesince }} ago
+                                </div>
+                                <a href="{{ bookmark.news.get_absolute_url }}" class="btn btn-primary btn-sm">
+                                    Read <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No saved articles yet. Start saving news you like!</p>
+                <a href="{% url 'news:list' %}" class="btn btn-primary">
+                    <i class="fas fa-newspaper me-2"></i>Browse News
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
